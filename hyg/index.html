@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYGEIA</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <h1>HYGEIA</h1>
+  <div>
+    <label for="image-upload">Upload Image:</label>
+    <input type="file" accept="image/jpeg" id="image-upload" onchange="handleImageUpload(event)">
+  </div>
+  <button type="button" onclick="return init()">Start</button>
+  <div id="label-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script type="text/javascript">
+    const URL = "https://teachablemachine.withgoogle.com/models/Y0D6l-Mqi/";
+
+    let model, labelContainer, maxPredictions;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      document.getElementById("label-container").innerHTML = ""; // Clear previous labels
+
+      const imageUpload = document.getElementById("image-upload");
+      imageUpload.value = ""; // Clear input value to allow re-uploading of the same image
+
+      imageUpload.disabled = false; // Enable the file input
+
+      // Prevent the default behavior of the button click event
+      return false;
+    }
+
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+
+      if (file) {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = async function (e) {
+          img.src = e.target.result;
+          img.onload = async function () {
+            // Create a canvas to match the image size
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+
+            // Run the image through the model
+            await predict(canvas);
+          };
+        };
+
+        reader.readAsDataURL(file);
+      }
+    }
+
+    async function predict(canvas) {
+      const prediction = await model.predict(canvas);
+      labelContainer = document.getElementById("label-container");
+
+      for (let i = 0; i < maxPredictions; i++) {
+        const classPrediction =
+          prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        const labelDiv = document.createElement("div");
+        labelDiv.innerHTML = classPrediction;
+        labelContainer.appendChild(labelDiv);
+      }
+    }
+  </script>
+</body>
+</html>

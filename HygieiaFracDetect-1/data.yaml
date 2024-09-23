@@ -1,0 +1,12 @@
+names:
+- fractured
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: hygieiafracdetect
+  url: https://universe.roboflow.com/raman-0g3ds/hygieiafracdetect/dataset/1
+  version: 1
+  workspace: raman-0g3ds
+test: ../test/images
+train: HygieiaFracDetect-1/train/images
+val: HygieiaFracDetect-1/valid/images
